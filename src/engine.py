@@ -4,6 +4,9 @@ import curses
 import numpy as np
 import time
 
+from src.termobj import Camera
+from src.components import Transform
+
 
 class Event():
     def __init__(self):
@@ -20,20 +23,35 @@ class Event():
             _c(*args)
 
 
+dbg_msgs = []
+
+def debug(msg):
+    global dbg_msgs
+    dbg_msgs.extend(msg.split('\n'))
+    dbg_msgs = dbg_msgs[-5:]
+    
 # Setup
+src = None
+
+def get_aspect_ratio():
+    height, width = scr.getmaxyx()
+    return width / height
+
 start_event = Event()
 update_event = Event()
 render_event = Event()
 stop_event = Event()
 
-FPS = 60
+FPS = 10
 TIME_DELTA = 1 / FPS
+TIME = 0
 
 # TODO Correct world to viewport matrix
-WORLD2VIEW = np.identity(4)
+MAIN_CAMERA = Camera()
 
 
 def start():
+    global scr, TIME
     scr = curses.initscr()
 
     start_event.invoke()
@@ -45,7 +63,12 @@ def start():
 
             scr.erase()
             render_event.invoke(scr)
+            height = scr.getmaxyx()[0]
+            for i, line in enumerate(dbg_msgs):
+                scr.addstr(height - len(dbg_msgs) + i, 0, line)
+
             scr.refresh()
+            TIME += TIME_DELTA
     except KeyboardInterrupt:
         pass
 

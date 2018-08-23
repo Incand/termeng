@@ -1,4 +1,7 @@
+from src import engine
 from src.components import Component, Transform
+
+import numpy as np
 
 
 class TestBehaviour(Component):
@@ -6,5 +9,6 @@ class TestBehaviour(Component):
         self._transform = self.get_component(Transform)
 
     def update(self):
-        self._transform.translate(0.01, 0.02, -0.015)
+        self._transform.scale = np.ones(3) + \
+            (1 + np.sin(2 * np.pi * engine.TIME / 10)) / 2
 
