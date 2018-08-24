@@ -24,14 +24,14 @@ class TermObj():
 
 
 class Camera(TermObj):
-    def __init__(self, fov=120, near=0.1, far=1000):
+    def __init__(self, fov=120, near=0.1, far=100):
         self.fov = fov
         self.near = near
         self.far = far
 
         TermObj.__init__(self)
         self._tranform = \
-            self.add_component(Transform(translation=np.array([0, 0, -50])))
+            self.add_component(Transform(translation=np.array([0, 0, -100])))
 
     def get_world2view_matrix(self):
         h = 1 / np.tan(np.deg2rad(self.fov) / 2)

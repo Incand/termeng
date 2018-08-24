@@ -1,4 +1,5 @@
 import numpy as np
+import quaternion
 
 from src.components import Component
 
@@ -8,7 +9,7 @@ class Transform(Component):
         self.translation = translation if translation is not None \
             else np.array([0, 0, 0, 1])
         self.rotation = rotation if rotation is not None \
-            else np.array([1, 0, 0, 0])
+            else np.array([0, 0, 0])
         self.scale = scale if scale is not None \
             else np.ones(4)
         Component.__init__(self)
@@ -38,14 +39,23 @@ class Transform(Component):
 
     @rotation.setter
     def rotation(self, rotation):
-        self._rotation = np.array(rotation)
+        if isinstance(rotation, np.quaternion):
+            self._rotation = rotation
+        elif len(rotation) == 4:
+            self._rotation = np.asarray(rotation, dtype=np.quaternion)
+        elif len(rotation) == 3:
+            self._rotation = quaternion.from_euler_angles(rotation)
+        else:
+            raise ValueError('rotation has to be quaternion (len 4) or ' +
+                             'euler angles (len 3)')
         # TODO Use correct rotation matrix
-        self._rot_mat = np.identity(4)
+        rot = np.identity(4)
+        rot[:3, :3] = quaternion.as_rotation_matrix(self._rotation)
+        self._rot_mat = rot
         self._update_obj2world()
    
     def rotate(self, x, y, z):
-        # TODO Implement the rotate function
-        pass
+        self.rotation *= quaternion.from_euler_angles([x, y, z])
 
     @property
     def scale(self):
@@ -67,10 +77,10 @@ class Transform(Component):
 
     def _update_obj2world(self):
         try:
-            self._obj2world = np.dot(
-                np.dot(self._scale_mat,
-                       self._rot_mat),
-                self._trans_mat)
+            self._obj2world = \
+                (self._scale_mat @ \
+                self._rot_mat) @ \
+                self._trans_mat
         except:
             pass
     
