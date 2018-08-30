@@ -71,6 +71,8 @@ def start():
             TIME += TIME_DELTA
     except KeyboardInterrupt:
         pass
+    finally:
+        curses.endwin()
 
     stop_event.invoke()
 
